@@ -9,10 +9,8 @@ class Parser:
 		self.parse_for_prevention()
 
 	def parse_for_prevention(self):
-		print(self.file)
 		with open(self.file) as f:
 			lines = f.readlines()
-			print("lines open")
 			for i in range(len(lines)):
 				if "SELECT" in lines[i] and "FROM" in lines[i]:
 					self.get_table_name(lines[i])
@@ -38,12 +36,3 @@ class Parser:
 			self.num_params_output = 0						# num_param_output = 0 --> SELECT ALL
 		else:
 			self.num_params_output = len(params.split(","))
-
-def add(a, b):
-	return a + b
-# file_name = input("file name: ")
-# print(file_name)
-# p = Parser(file_name)
-# print(p.table_name)
-# print(p.num_params_output)
-# print(p.prevention_type)

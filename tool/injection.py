@@ -1,13 +1,12 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from fileParser import *
-import time
 
 
 class Injection:
     def __init__(self, num_params, table_name, prevention_type, injection_dict):
         self.columns = []
-        self.successful_injection = 0  # Count number of successful injections
+        self.successful_injection = 0  # Count number of successful injections, the first injection is always successful as "1" is a valid user ID
         self.max_columns = num_params  # Assume that we know the return output will consist of 2 values (firstname and surname)
         self.table = table_name
         self.current_injection = 0
@@ -50,8 +49,6 @@ class Injection:
         return len(output) > 1
 
     def get_current_injection(self):
-        print(self.injections)
-        print(self.current_injection)
         return self.injections[self.current_injection]
 
     def get_num_params(self, param_name):
@@ -65,10 +62,9 @@ class Injection:
             return string_concat
 
     def get_injection_string(self):
-        param_name = ""
         string_concat = ""
 
-        raw_injection_string = self.injection_dict[self.prevention_type][self.current_injection] 
+        raw_injection_string = self.injection_dict[self.prevention_type][self.current_injection]
         if isinstance(raw_injection_string, list):
             for elem in raw_injection_string:
                 if elem == "guess_param":
@@ -121,17 +117,9 @@ class Injection:
         val_list = []
         vulnerable_class = driver.find_elements_by_tag_name("pre")
         for val in vulnerable_class:
-            print("Value is: %s" % val.get_attribute("innerHTML"))
+            # print("Value is: %s" % val.get_attribute("innerHTML"))
             val_list.append(val.get_attribute("innerHTML"))
         return val_list
-
-
-def force_low_security(level):
-    if level != "impossible":
-        driver.delete_cookie("security")
-        cookie = {"name": "security", "value": "low"}
-        driver.add_cookie(cookie)
-        driver.get("http://localhost/dvwa/vulnerabilities/sqli/")
 
 
 def test_injections(output_dict):
@@ -147,14 +135,30 @@ def set_injections():
     return injection_dict
 
 
+def printer(injection):
+    print('=' * 100)
+    print('Finished injecting')
+    print()
+    print('Out of total ' + str(len(injection.injection_dict[injection.prevention_type])) + ' potential injections, ' +
+          str(injection.successful_injection) + ' were successful.')
+    print()
+    if injection.successful_injection > 0:
+        if injection.prevention_type == 0:
+            print('You were not using any mean of protection. Consider implementing prevention toward SQL injection.')
+        elif injection.prevention_type == 1:
+            print('You use mysql_real_escape_string() as a prevention, but it is not being used in a proper way.')
+    else:
+        print('Your code is well protected against SQL injection.')
+
+
 def main():
     global driver
     driver = webdriver.Chrome()
     driver.get("http://localhost/dvwa/vulnerabilities/sqli/")
-    parser = Parser(input("file name: "))
+    parser = Parser(input("file path: "))
     injection_dict = set_injections()
-    Injection(parser.num_params_output, parser.table_name, parser.prevention_type, injection_dict)
-    time.sleep(600)
+    injection = Injection(parser.num_params_output, parser.table_name, parser.prevention_type, injection_dict)
+    printer(injection)
     driver.close()
 
 
