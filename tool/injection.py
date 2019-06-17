@@ -9,7 +9,7 @@ class Injection:
         # Count number of successful injections, the first injection is always successful as "1" is a valid user ID
         self.successful_injection = 0
         # Assume that we know the return output will consist of 2 values (firstname and surname)
-        self.max_columns = num_params  
+        self.max_columns = num_params
         self.table = table_name
         self.current_injection = 0
         self.prevention_type = prevention_type
@@ -55,7 +55,6 @@ class Injection:
 
     @staticmethod
     def inject_success(output):  # Number of <pre> tags must be over 1 to be called a successful injection
-        print(output)
         return len(output) > 1
 
     def get_current_injection(self):
