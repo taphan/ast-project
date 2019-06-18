@@ -38,6 +38,3 @@ class Parser:
 			self.num_params_output = 0
 		else:
 			self.num_params_output = len(params.split(","))
-
-def add(a, b):
-	return a + b
