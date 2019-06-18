@@ -32,11 +32,16 @@ class Injection:
         password.send_keys("password")
         login_btn.send_keys(Keys.RETURN)
 
-    @staticmethod
-    def force_low_security():
+    def force_low_security(self):
         driver.get("http://localhost/dvwa/vulnerabilities/sqli/")
         driver.delete_cookie("security")
-        cookie = {"name": "security", "value": "low"}
+        if self.prevention_type == 0:
+            vulnerability = "low"
+        elif self.prevention_type == 1:
+            vulnerability = "medium"
+        else:
+            vulnerability = "impossible"
+        cookie = {"name": "security", "value": vulnerability}
         driver.add_cookie(cookie)
         driver.get("http://localhost/dvwa/vulnerabilities/sqli/")
 
@@ -119,8 +124,10 @@ class Injection:
         # Inject with string
         input_field = driver.find_element_by_name("id")
         submit_btn = driver.find_element_by_name("Submit")
+        input_field.clear()
         input_field.send_keys(injecting_string)
         submit_btn.send_keys(Keys.RETURN)
+        print("inject string is: " + injecting_string)
 
         # Try to read output
         val_list = []
